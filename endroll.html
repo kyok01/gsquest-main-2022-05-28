@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <script src="./js/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="./css/endroll.css">
+    <title>Document</title>
+</head>
+
+<body onload="scroll()">
+    <!-- <img src="blank.gif" height="1000" width="1" alt=""><br> -->
+    <br><br><br><br><br><br>
+    <h1><img src="./img/image.png" alt=""></h1>
+    <h2>Clear !!</h2>
+    <br><br><br><br><br><br><br>
+    <h2>企画</h2>
+    <p>
+        飯野 義之<br>伊串 涼平<br>館林 勇人<br>横井 一隆<br><br><br><br><br><br>
+    </p>
+    <h2>構成</h2>
+    <p>
+        いっちー<br>ぐっしー<br>たてば<br>めっし<br><br><br><br><br><br>
+    </p>
+    <h2>プログラム</h2>
+    <p>
+        HACK FES<br>2022.05.28<br><br><br><br><br><br>
+    </p>
+    <h2>スペシャルサンクス</h2>
+    <p>
+        G's ACADEMY<br>https://gsacademy.jp/<br><br><br>
+    </p>
+    <br><br><br><br><br><br><br><br><br>
+    <span style="font-size:80pt">The END</span><br>
+    <img src="blank.gif" height="400" width="1" alt=""><br>
+</body>
+
+<script>
+    function winOpen()
+    {
+        var w=(screen.width-640)/2;
+        var h=(screen.height-480)/2;
+        window.open("staffroll.html","sub","width=640,height=480,"+
+        "left="+w+",top="+h+",scrollbars=no,menubar=no,toolbar=no");
+    }
+
+// エンドロールスクリプト
+    function scroll()
+    {
+  scrollBy(0,4); //画面を2px下にずらす
+  setTimeout("scroll()",50); //100ミリ秒毎に関数scroll()を呼び出し
+    }
+</script>
+
+<!-- <form>
+    <input type="button" value="staffroll" onclick="winOpen()">
+</form> -->
+</body>
+</html>

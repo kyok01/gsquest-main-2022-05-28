@@ -1,0 +1,51 @@
+@font-face {
+	font-family: 'basefont';
+  src: url('../fonts/PixelMplus12-Regular.ttf') format('truetype');
+}
+
+body {
+  background-image:url('./img/space.jpeg') ;
+  font-family: 'basefont';
+}
+a {
+  color: white;
+}
+
+.imgbox {
+  margin-top: 70px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+#msg {
+  width: 700px;
+  height: 60px;
+  background: white;
+  border-radius: 5px;
+  margin: 0 auto;
+  padding: 10px;
+}
+
+#text1,#text2,#text3,#text4,#text5 {
+  display: none;
+}
+
+.triangle{
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid black;
+  margin-left: auto;
+  animation: flash 1s linear infinite;
+}
+
+
+@keyframes flash {
+  0%,100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}

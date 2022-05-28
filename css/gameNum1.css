@@ -1,0 +1,17 @@
+@font-face {
+	font-family: 'basefont';
+  src: url('../fonts/PixelMplus12-Regular.ttf') format('truetype');
+}
+
+body {
+  padding-top: 40px;
+  font-family: 'basefont';
+  text-align: center;
+  background-image: url(../img/space.jpeg);
+  color: white;
+}
+
+#target {
+  font-size: 30px;
+  letter-spacing: .1em;
+}

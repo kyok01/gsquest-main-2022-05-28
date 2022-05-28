@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, maximum-scale=1.0, minimum-scale=0.5,user-scalable=yes,initial-scale=1.0"
+    />
+    <meta name="robots" content="noindex" />
+    <link rel="stylesheet" href="./css/gameNum7.css" />
+    <title>秒当てゲーム</title>
+
+    <!-- Bootstrap -->
+    <script
+      src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+      integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+      integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+      crossorigin="anonymous"
+    ></script>
+
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+      integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+      integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+      crossorigin="anonymous"
+    ></script>
+    <!-- /Bootstrap -->
+  </head>
+  <body>
+    <div>
+      <div id="container">
+        <h3>0秒でとめろ!!</h3>
+        <h3>誤差1.0秒以内でクリア！</h3>
+
+        <!-- トップページ -->
+        <div id="page1">
+          <div class="mContainer">
+            <img id="mainImg" src="./img/20sec_02.png" alt="時計" />
+          </div>
+
+          <!-- button -->
+          <div>
+            <button id="20" type="button" class="secBtn">Click to Start</button>
+          </div>
+        </div>
+
+        <!-- 計測ページ -->
+        <div id="page2" class="displayNone">
+          <!-- カウントダウン -->
+          <div class="mContainer">
+            <p id="count" class="count">30</p>
+            <p id="question" class="displayNone counter">??.???</p>
+          </div>
+
+          <!-- button -->
+          <div>
+            <button id="stopBtn" type="button" class="stopBtn inactive">
+              ストップ！
+            </button>
+          </div>
+        </div>
+
+        <!-- 結果ページ -->
+        <div id="page3" class="displayNone">
+          <div class="mContainer">
+            <h3 id="rsltMsg"></h3>
+            <p id="rslt" class="counter"><span id="rsltSec"></span></p>
+          </div>
+
+          <!-- button -->
+          <div>
+            <button id="rtnBtn" type="button" class="rtnBtn">戻る</button>
+          </div>
+        </div>
+      </div>
+      <img src="./img/backimage01.jpg" alt="space" id="bgimage" />
+    </div>
+    <!-- JQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- JQuery -->
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-app.js";
+      import {
+        getDatabase,
+        ref,
+        push,
+        set,
+        onChildAdded,
+        remove,
+        onChildRemoved,
+        get,
+        onChildChanged,
+        child,
+        onValue,
+        update,
+      } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-database.js";
+      // TODO: Add SDKs for Firebase products that you want to use
+      // https://firebase.google.com/docs/web/setup#available-libraries
+
+      // import environment variables from env.js
+      import {
+        envApiKey,
+        envAuthDomain,
+        envProjectId,
+        envStorageBucket,
+        envMessagingSenderId,
+        envApiId,
+      } from "./js/env.js";
+
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: envApiKey,
+        authDomain: envAuthDomain,
+        projectId: envProjectId,
+        storageBucket: envStorageBucket,
+        messagingSenderId: envMessagingSenderId,
+        appId: envApiId,
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+
+      // Global 変数
+      let userId;
+
+      //読み込み時の処理
+      if (localStorage.getItem("userId") != null) {
+        userId = localStorage.getItem("userId");
+      } else {
+        alert("ログインできていません");
+        location.href = "./login.html";
+      }
+
+      {
+        // クリアフラグを定義。クリアしたら1
+        let clearFlag = 0;
+
+        /* 変数定義 */
+        const count = document.getElementById("count");
+        const stop = document.getElementById("stopBtn");
+        const reset = document.getElementById("rtnBtn");
+        const rsltMsg = document.getElementById("rsltMsg");
+        const secBtn = document.getElementsByClassName("secBtn");
+
+        let startTime;
+        let timeoutId;
+        let elapsedTime = 0;
+        let minutes;
+        let sec;
+        let msec;
+        let countSec;
+        let zeroFlg;
+
+        for (let i = 0; i < secBtn.length; i++) {
+          secBtn[i].addEventListener(
+            "click",
+            () => {
+              if (secBtn[i].getAttribute("id") == "20") {
+                countSec = 20000;
+              } else {
+                ("エラー");
+              }
+
+              document.getElementById("page1").classList.add("displayNone");
+              document.getElementById("page2").classList.remove("displayNone");
+
+              startTime = Date.now();
+              startCountDown();
+            },
+            false
+          );
+        }
+
+        // スタート用カウントダウン関数
+        function startCountDown() {
+          zeroFlg = true;
+          const d = new Date(startTime - Date.now() + 5999); // 5秒カウント後スタート
+          const s = String(d.getSeconds()).padStart(1, "0"); // 1桁表示（小数点以下なし）
+          count.textContent = `${s}`;
+
+          timeoutId = setTimeout(() => {
+            if (count.textContent == "0") {
+              // カウントが0になったら計測開始可能へ
+              stop.classList.remove("inactive");
+              count.classList.remove("count");
+              count.classList.add("counter");
+              startTime = Date.now();
+              countDown();
+            } else {
+              startCountDown();
+            }
+          }, 1000); //1秒感覚でテキスト数値を更新
+        }
+
+        // カウントダウン用関数
+        function countDown() {
+          if (zeroFlg == true) {
+            const d = new Date(startTime - Date.now() + countSec);
+            const s = String(d.getSeconds()).padStart(2, "0"); // 秒計測用 2桁
+            const ms = String(d.getMilliseconds()).padStart(3, "0"); //小数点以下 3桁
+            count.textContent = `${s}.${ms}`;
+
+            sec = `${s}`;
+            msec = `${ms}`;
+
+            // 時間を隠す
+            if (Date.now() - startTime >= 5000) {
+              document.getElementById("count").classList.add("displayNone");
+              document
+                .getElementById("question")
+                .classList.remove("displayNone"); // 5秒後に??.???表示
+            }
+
+            if (sec == "00" && parseInt(msec) <= parseInt("010")) {
+              startTime = Date.now();
+              zeroFlg = false;
+            }
+          } else {
+            // カウントアップさせる(オーバータイムをマイナスで表示)
+            const d = new Date(Date.now() - startTime);
+            const m = String(d.getMinutes()).padStart(2, "0");
+            const s = String(d.getSeconds()).padStart(2, "0");
+            const ms = String(d.getMilliseconds()).padStart(3, "0");
+            count.textContent = `-${s}.${ms}`;
+
+            minutes = `${m}`;
+            sec = `${s}`;
+            msec = `${ms}`;
+          }
+
+          timeoutId = setTimeout(() => {
+            countDown();
+          }, 10);
+        }
+
+        // ストップ時処理
+        stop.addEventListener("click", () => {
+          if (stop.classList.contains("inactive") === true) {
+            return;
+          }
+          // setButtonStateStopped();
+          clearTimeout(timeoutId);
+          // elapsedTime += Date.now() - startTime;
+
+          document.getElementById("rsltSec").textContent = count.textContent;
+          document.getElementById("question").classList.add("displayNone");
+
+          // ストップした時の残り時間が0±1であるかどうかの判定
+          if (sec == "00" && msec == "000") {
+            rsltMsg.textContent = "Clear!!!!! あなたは答えをしっている！";
+            clearFlag = 1;
+            const msg = {
+              gameNum7: "clear",
+            };
+            $.when(update(child(ref(db), `users/${userId}`), msg)).done(
+              function () {
+                setTimeout(returnTop(), 5000);
+                const returnTop = function () {
+                  window.location.href = "./index.html";
+                };
+              }
+            );
+          } else if (sec == "00" || (sec == "01" && msec == "000")) {
+            rsltMsg.textContent = "Clear!!    ピッタリまでもう一歩！";
+            clearFlag = 1;
+          } else {
+            rsltMsg.textContent = 'Game Over...  Always Ask "Why me？"';
+          }
+
+          // pege切り替え（結果ページへ）
+          document.getElementById("page2").classList.add("displayNone");
+          document.getElementById("page3").classList.remove("displayNone");
+          document.getElementById("count").classList.remove("displayNone");
+        });
+
+        // リセット時処理
+        reset.addEventListener("click", () => {
+          // pege切り替え
+          document.getElementById("page3").classList.add("displayNone");
+          document.getElementById("page1").classList.remove("displayNone");
+          document.getElementById("count").classList.remove("displayNone");
+
+          stop.classList.add("inactive");
+        });
+      }
+    </script>
+  </body>
+</html>

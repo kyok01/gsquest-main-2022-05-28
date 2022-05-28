@@ -1,0 +1,44 @@
+@font-face {
+	font-family: 'basefont';
+    src: url('../fonts/PixelMplus12-Regular.ttf') format('truetype');
+}
+
+body{
+    /* background-color: rgb(38, 38, 38); */
+    background-image: url(../img/space.jpeg);
+    font-family: 'basefont';
+}
+
+.canvas_wrapper{
+    display: flex;
+    justify-content: center;
+}
+
+#can{
+	display: block;
+}
+
+#time2{
+    float: left;
+    background-color: red;
+    size: 200px;
+}
+
+body, .canvas_wrapper{
+    min-height: 100vh;
+	width: 100%;
+	height: 100%;
+}
+
+p,form{
+    text-align: center;
+}
+
+p{
+    color: red;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+#can {
+    border: 1px solid #CCC;
+  }

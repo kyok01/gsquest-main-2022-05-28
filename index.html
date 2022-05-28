@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="./css/index.css" />
+    <title>G's Quest</title>
+  </head>
+  <body>
+    <!-- コンテンツ表示画面 -->
+    <h1><img src="./img/image.png" alt=""></h1>
+      <!-- <h2>ゲーム選択</h2> -->
+      <p>　　　　←か→のカーソルキーで移動、Enterでゲーム選択。クリアした惑星は黄色で表示されます。</p>
+      <div id="output">
+        <div id="output__column0" class="output__column">スタート<img src="./img/Starbase.png" alt="">
+        </div>
+        <div id="output__column1" class="output__column">惑星1 <img src="./img/pla1.png" alt=""></div>
+        <div id="output__column2" class="output__column">惑星2<img src="./img/pla2.png" alt=""></div>
+        <div id="output__column3" class="output__column">惑星3<img src="./img/pla3.png" alt=""></div>
+      </div>
+      <div id="output2">
+        <div id="output__column4" class="output__column">惑星4<img src="./img/pla4.png" alt=""></div>
+        <div id="output__column5" class="output__column">惑星5<img src="./img/pla5.png" alt=""></div>
+        <div id="output__column6" class="output__column">惑星6<img src="./img/pla6.png" alt=""></div>
+        <div id="output__column7" class="output__column">惑星7<img src="./img/pla7.png" alt=""></div>
+      </div>
+      <ul>
+        <!-- <li>
+          ※ゲーム1には、1人プレイ用のミニゲーム(ハートを見ろ！)を実装しています。
+        </li>
+        <li>
+          ※ゲーム2には、何人が集まったかどうかの判定をつけている。複数人プレイのゲームでゲーム利用可能な人数が集まったかどうかを判定するためのsample機能集となっている
+        </li>
+        <li>※ゲーム3-4には、何もまだ設定していないです</li> -->
+      </ul>
+
+      <!-- <h2>今いる星のゲーム</h2>
+      <div id="gameDescription"></div> -->
+    </div>
+    <div id="ranking">
+      <!-- <h2>スコアランキング</h2>
+      <p>※以下のランキング表は、同率順位の処理までは未実装</p>
+      <table>
+        <thead>
+          <tr>
+            <th>順位</th>
+            <td>ID</td>
+            <td>ユーザーネーム</td>
+            <td>得点</td>
+          </tr>
+        </thead>
+        <tbody id="ranking__rows"></tbody>
+      </table> -->
+    </div>
+
+    <!--/ コンテンツ表示画面 -->
+
+    <!-- JQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- JQuery -->
+
+    <!--** 以下Firebase **-->
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-app.js";
+      import {
+        getDatabase,
+        ref,
+        push,
+        set,
+        onChildAdded,
+        remove,
+        onChildRemoved,
+        get,
+        onChildChanged,
+        child,
+        update,
+        query,
+        orderByChild,
+        onValue,
+      } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-database.js";
+      // TODO: Add SDKs for Firebase products that you want to use
+      // https://firebase.google.com/docs/web/setup#available-libraries
+
+      // import environment variables from env.js
+      import {
+        envApiKey,
+        envAuthDomain,
+        envDatabaseURL,
+        envProjectId,
+        envStorageBucket,
+        envMessagingSenderId,
+        envApiId,
+      } from "./js/env.js";
+
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: envApiKey,
+        authDomain: envAuthDomain,
+        databaseURL: envDatabaseURL,
+        projectId: envProjectId,
+        storageBucket: envStorageBucket,
+        messagingSenderId: envMessagingSenderId,
+        appId: envApiId,
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+      const dbRef = ref(db, "users");
+
+      //グローバル変数
+      let userId;
+
+      //読み込み時の処理
+      if (localStorage.getItem("userId") != null) {
+        userId = localStorage.getItem("userId");
+      }else{
+        alert("ログインできていません");
+        location.href = "./login.html";
+      }
+      //送信イベント
+      // アカウントの位置移動
+      document.addEventListener("keydown", function (e) {
+        get(child(ref(db), `users/${userId}`))
+          .then((snapshot) => {
+            if (snapshot.exists()) {
+              console.log(`users/${userId}`); //debug
+              console.log(snapshot.val()); //debug
+              //列0の場合
+              if (snapshot.val().position == 0) {
+                if (e.code == "KeyW" || e.code == "ArrowUp") {
+                  console.log(`Up`);
+                  console.log(`機能なし`);
+                } else if (e.code == "KeyS" || e.code == "ArrowDown") {
+                  console.log(`Down`);
+                  update(child(ref(db), `users/${userId}`), {
+                    position: 4,
+                  });
+                  $("#gameDescription").html(`ゲーム4の説明`);
+                } else if (e.code == "KeyA" || e.code == "ArrowLeft") {
+                  console.log(`Left`);
+                  console.log(`位置に変化なし`);
+                } else if (e.code == "KeyD" || e.code == "ArrowRight") {
+                  console.log(`Right`);
+                  // const msg = {
+                  //   uname: snapshot.val().uname,
+                  //   text: snapshot.val().text,
+                  //   position: snapshot.val().position + 1,
+                  //   gameNum: 0,
+                  // };
+                  update(child(ref(db), `users/${userId}`), {
+                    position: 1,
+                  });
+                  $("#gameDescription").html(`ゲーム1の説明`);
+                }
+              }
+              //列1の場合
+              if (snapshot.val().position == 1) {
+                if (e.code == "KeyW" || e.code == "ArrowUp") {
+                  console.log(`Up`);
+                  console.log(`機能なし`);
+                } else if (e.code == "KeyS" || e.code == "ArrowDown") {
+                  console.log(`Down`);
+                  // console.log(`機能なし`);
+                  update(child(ref(db), `users/${userId}`), {
+                    position: 5,
+                  });
+                } else if (e.code == "KeyA" || e.code == "ArrowLeft") {
+                  console.log(`Left`);
+                  update(child(ref(db), `users/${userId}`), {
+                    position: 0,
+                  });
+                } else if (e.code == "KeyD" || e.code == "ArrowRight") {
+                  console.log(`Right`);
+                  update(child(ref(db), `users/${userId}`), {
+                    position: 2,
+                  });
+                }
+              }
+              //列2の場合
+              if (snapshot.val().position == 2) {
+                if (e.code == "KeyW" || e.code == "ArrowUp") {
+                  console.log(`Up`);
+                  console.log(`機能なし`);
+                } else if (e.code == "KeyS" || e.code == "ArrowDown") {
+                  console.log(`Down`);
+                  update(child(ref(db), `users/${userId}`), {
+                    position: 6,
+                  });
+                } else if (e.code == "KeyA" || e.code == "ArrowLeft") {
+                  console.log(`Left`);
+                  update(child(ref(db), `users/${userId}`), {
+                    position: 1,
+                  });
+                } else if (e.code == "KeyD" || e.code == "ArrowRight") {
+                  console.log(`Right`);
+                  update(child(ref(db), `users/${userId}`), {
+                    position: 3,
+                  });
+                }
+              }
+              //列3の場合
+              if (snapshot.val().position == 3) {
+                if (e.code == "KeyW" || e.code == "ArrowUp") {
+                  console.log(`Up`);
+                  console.log(`機能なし`);
+                } else if (e.code == "KeyS" || e.code == "ArrowDown") {
+                  console.log(`Down`);
+                  // console.log(`機能なし`);
+                  update(child(ref(db), `users/${userId}`), {
+                    position: 7,
+                  });
+                } else if (e.code == "KeyA" || e.code == "ArrowLeft") {
+                  console.log(`Left`);
+                  update(child(ref(db), `users/${userId}`), {
+                    position: 2,
+                  });
+                } else if (e.code == "KeyD" || e.code == "ArrowRight") {
+                  console.log(`Right`);
+                  update(child(ref(db), `users/${userId}`), {
+                    position: 4,
+                  });
+                }
+              }
+              //列4の場合
+              if (snapshot.val().position == 4) {
+                if (e.code == "KeyW" || e.code == "ArrowUp") {
+                  console.log(`Up`);
+                  // console.log(`機能なし`);
+                  update(child(ref(db), `users/${userId}`), {
+                    position: 0,
+                  });
+                } else if (e.code == "KeyS" || e.code == "ArrowDown") {
+                  console.log(`Down`);
+                  console.log(`機能なし`);
+                } else if (e.code == "KeyA" || e.code == "ArrowLeft") {
+                  console.log(`Left`);
+                  update(child(ref(db), `users/${userId}`), {
+                    position: 3,
+                  });
+                } else if (e.code == "KeyD" || e.code == "ArrowRight") {
+                  console.log(`Right`);
+                  // console.log(`位置変化なし`);
+                  update(child(ref(db), `users/${userId}`), {
+                    position: 5,
+                  });
+                }
+              }
+              if (snapshot.val().position == 5) {
+                if (e.code == "KeyW" || e.code == "ArrowUp") {
+                  console.log(`Up`);
+                  update(child(ref(db), `users/${userId}`), {
+                    position: 1,
+                  });
+                } else if (e.code == "KeyS" || e.code == "ArrowDown") {
+                  console.log(`Down`);
+                } else if (e.code == "KeyA" || e.code == "ArrowLeft") {
+                  console.log(`Left`);
+                  update(child(ref(db), `users/${userId}`), {
+                    position: 4,
+                  });
+                } else if (e.code == "KeyD" || e.code == "ArrowRight") {
+                  console.log(`Right`);
+                  update(child(ref(db), `users/${userId}`), {
+                    position: 6,
+                  });
+                }
+              }
+              if (snapshot.val().position == 6) {
+                if (e.code == "KeyW" || e.code == "ArrowUp") {
+                  console.log(`Up`);
+                  // console.log(`機能なし`);
+                  update(child(ref(db), `users/${userId}`), {
+                    position: 2,
+                  });
+                } else if (e.code == "KeyS" || e.code == "ArrowDown") {
+                  console.log(`Down`);
+                  console.log(`機能なし`);
+                } else if (e.code == "KeyA" || e.code == "ArrowLeft") {
+                  console.log(`Left`);
+                  update(child(ref(db), `users/${userId}`), {
+                    position: 5,
+                  });
+                } else if (e.code == "KeyD" || e.code == "ArrowRight") {
+                  console.log(`Right`);
+                  // console.log(`位置変化なし`);
+                  update(child(ref(db), `users/${userId}`), {
+                    position: 7,
+                  });
+                }
+              }
+              if (snapshot.val().position == 7) {
+                if (e.code == "KeyW" || e.code == "ArrowUp") {
+                  console.log(`Up`);
+                  // console.log(`機能なし`);
+                  update(child(ref(db), `users/${userId}`), {
+                    position: 3,
+                  });
+                } else if (e.code == "KeyS" || e.code == "ArrowDown") {
+                  console.log(`Down`);
+                  console.log(`機能なし`);
+                } else if (e.code == "KeyA" || e.code == "ArrowLeft") {
+                  console.log(`Left`);
+                  update(child(ref(db), `users/${userId}`), {
+                    position: 6,
+                  });
+                } else if (e.code == "KeyD" || e.code == "ArrowRight") {
+                  console.log(`Right`);
+                  console.log(`位置変化なし`);
+                }
+              }
+            } else {
+              console.log("No data available");
+            }
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      });
+
+      //ゲームの選択とゲーム画面の読み込み
+      document.addEventListener("keydown", function (e) {
+        get(child(ref(db), `users/${userId}`))
+          .then((snapshot) => {
+            if (snapshot.exists()) {
+              console.log(`users/${userId}`); //debug
+              console.log(snapshot.val()); //debug
+              if (e.code == "Enter" || e.Keycode == 13) {
+                if (
+                  snapshot.val().position >= 1 ||
+                  snapshot.val().position <= 7
+                ) {
+                  console.log(`enter押せた`); //debug
+                  const msg = {
+                    gameNum: snapshot.val().position,
+                  };
+                  update(child(ref(db), `users/${userId}`), msg);
+                  window.location.href = `./gameNum${
+                    snapshot.val().position
+                  }.html`;
+                }
+              }
+            } else {
+              console.log("No data available");
+            }
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      });
+
+      //受信イベント
+      // アカウントの表示
+      onChildAdded(dbRef, function (data) {
+        const msg = data.val();
+        const key = data.key; //ユニークキーの取得
+        // キャラの表示
+        let charaURL;
+        if (msg.chara == "charaA"){
+          charaURL = "./img/cute_girl.png"
+        }
+        if (msg.chara == "charaB"){
+          charaURL = "./img/cute_boy.png"
+        }
+        // アカウントの一覧表
+        let h = '<p data-id="';
+        h += key;
+        h += '">';
+        h += msg.uname;
+        h += "<br>";
+        h += '<img src="';
+        h += charaURL;
+        h += '" alt="" id="chara">';
+        h += "</p>";
+        $(`#output__column${msg.position}`).append(h);
+      });
+
+      //アカウントの位置変化の反映
+      onChildChanged(dbRef, function (data) {
+        console.log("位置変化あり");
+        const msg = data.val();
+        console.log(msg);
+        const key = data.key; //ユニークキーの取得
+        $(`p[data-id="${key}"]`).remove();
+        console.log(`p[data-id="${key}"]`);
+        const newPosition = data.val().position;
+        console.log(newPosition);
+        // キャラの表示
+        let charaURL;
+        if (msg.chara == "charaA"){
+          charaURL = "./img/cute_girl.png"
+        }
+        if (msg.chara == "charaB"){
+          charaURL = "./img/cute_boy.png"
+        }
+        let h = '<p data-id="';
+        h += key;
+        h += '">';
+        h += msg.uname;
+        h += "<br>";
+        h += '<img src="';
+        h += charaURL;
+        h += '" alt="" id="chara">';
+        h += "</p>";
+        $(`#output__column${newPosition}`).append(h);
+      });
+
+      // スコアランキングの表示
+      onValue(dbRef, function (snapshot) {
+        const data = snapshot.val();
+        console.log(data); //debug
+        const topScoreUserRef = query(
+          ref(db, `users`),
+          orderByChild("score")
+        ); //スコアが小さい順のデータベースReferenceを生成する
+        console.log(topScoreUserRef); //debug
+        // 配列とonChildAddedを用いて、scoreが小きい順の配列を作る
+        let arrScoreDesc = []; //scoreが大きい順に格納するローカル変数を宣言
+        onChildAdded(topScoreUserRef, function (data) {
+          console.log(data.val()); //debug
+          console.log(data.key); //debug
+          const hash = {
+            key: data.key,
+            uname: data.val().uname,
+            score: data.val().score,
+          };
+          arrScoreDesc.unshift(hash); //unshiftで配列の先頭に追加する
+        });
+        // ランキングとして出力する
+        $("#ranking__rows").html(""); //既存のランキング表を空にする
+        let rank = 1; // ランクを表示するためのローカル変数
+        arrScoreDesc.forEach(function (ele) {
+          console.log(ele); //debug
+          $("#ranking__rows").append(
+            `<tr><th>${rank}位</th><td>${ele.key}</td><td>${ele.uname}</td><td>${ele.score}</td></tr>`
+          ); //昇順のデータを降順で表示するためにprependを用いる
+          rank++;
+        });
+      });
+
+      // クリアした星を赤く表示
+      onValue(ref(db, `users/${userId}`), function (snapshot) {
+        const data = snapshot.val();
+        console.log(data); //debug
+        for (let i = 1; i <= 7; i++) {
+          console.log(data[`gameNum${i}`]); //debug
+          if (data[`gameNum${i}`] == "clear") {
+            $(`#output__column${i}`).addClass("red");
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

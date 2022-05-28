@@ -1,0 +1,10 @@
+* {
+    width: 800px;
+    margin: 5px auto;
+    height: auto;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-family: "Meiryo",sans-serif;
+    background-image: url(../img/space.jpeg);
+}

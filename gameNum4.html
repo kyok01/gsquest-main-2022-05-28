@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <link rel="stylesheet" href="./css/gameNum4.css" />
+    <title>反射神経を競うゲーム</title>
+  </head>
+  <body>
+    <!-- メイン画面 -->
+    <section id="wrap">
+      <video id="bg-video" src="./mov/space.mp4" autoplay loop></video>
+      <p class="result"></p>
+      <p class="sub"></p>
+      <h3 class="description">平均1.0秒以内にクリックせよ</h3>
+      <p class="average"></p>
+      <ul></ul>
+      <p class="main">Game Start</p>
+      <p class="back"></p>
+      <div id="gamearea"></div>
+      <!-- 画像生成 -->
+    </section>
+
+    <!-- 以下、script -->
+    <!-- JQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- JQuery -->
+
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-app.js";
+      import {
+        getDatabase,
+        ref,
+        push,
+        set,
+        onChildAdded,
+        remove,
+        onChildRemoved,
+        get,
+        onChildChanged,
+        child,
+        onValue,
+        update,
+      } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-database.js";
+      // TODO: Add SDKs for Firebase products that you want to use
+      // https://firebase.google.com/docs/web/setup#available-libraries
+
+      // import environment variables from env.js
+      import {
+        envApiKey,
+        envAuthDomain,
+        envProjectId,
+        envStorageBucket,
+        envMessagingSenderId,
+        envApiId,
+      } from "./js/env.js";
+
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: envApiKey,
+        authDomain: envAuthDomain,
+        projectId: envProjectId,
+        storageBucket: envStorageBucket,
+        messagingSenderId: envMessagingSenderId,
+        appId: envApiId,
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+
+      // 関数指定
+      function cl(a) {
+        //console.log();による確認用の関数
+        console.log(a);
+      }
+      function $(id) {
+        // jQuery化の練習用
+        return document.querySelector(id);
+      }
+      function r(num1, num2) {
+        //random関数
+        return Math.floor(Math.random() * num1) + num2;
+      }
+
+      // 変数指定
+      let cntdown = 5; //5秒
+      let times = 0;
+      let avg = 0;
+      let cnt = 0;
+      const section = $("section"); //div要素を取得
+      const div = $("div"); //div要素を取得
+      const main = $(".main"); //main要素を取得
+      const sub = $(".sub"); //sub要素を取得
+      const result = $(".result"); //result要素を取得
+      const back = $(".back"); //back要素を取得
+      const average = $(".average"); //average要素を取得
+      let userId;
+
+      //読み込み時の処理
+      if (localStorage.getItem("userId") != null) {
+        userId = localStorage.getItem("userId");
+      } else {
+        alert("ログインできていません");
+        location.href = "./login.html";
+      }
+
+      // スタート画面処理
+      main.animate(
+        //スタート画面のアニメーション処理：4秒間 不透明→透明を繰り返す
+        { opacity: [1, 0, 1] },
+        { duration: 4000, iterations: "Infinity" }
+      );
+
+      // PC・スマホの判定
+      const eventtype = window.ontouchstart !== null ? "click" : "touchstart";
+
+      // スタート画面でクリック（orタッチ）された時の処理
+      section.addEventListener(eventtype, countdown); //画面をタッチする度にcountdown開始
+      function countdown() {
+        // ★countdownの関数定義
+        section.removeEventListener(eventtype, countdown);
+        let id = setInterval(() => {
+          //カウントダウンを開始
+          main.textContent = cntdown;
+          main.animate(
+            { opacity: [1, 0] },
+            { duration: 1000, fill: "forwards" }
+          );
+          if (cntdown === 0) {
+            //カウントダウンが終了したとき（0秒になったとき）の処理
+            clearInterval(id); //カウントダウンを取り消す
+            main.textContent = ""; // 画面の文字を空に
+            meteor(); //下で指定、ランダム秒後にパネルの色を変える
+          }
+          cntdown--; //1秒ごとマイナス
+        }, 1000); //5秒から1秒間隔後でカウントダウン
+      }
+
+      function meteor() {
+        let time = r(3000, 2000);
+        setTimeout(() => {
+          let img = document.createElement("img");
+          img.src = "meteor000.png";
+          let d = document.createElement("div");
+          div.appendChild(img);
+          div.style.width = "100px";
+          div.style.height = "100px";
+          div.style.position = "relative";
+          let w = window.innerWidth;
+          let h = window.innerHeight;
+          let l = r(w - 200, 0);
+          let t = r(h - 400, 0);
+          div.style.left = l + "px";
+          div.style.top = t + "px";
+          const startTime = new Date();
+          timer(startTime);
+        }, time);
+      }
+
+      // タイム計測・表示
+      function timer(startTime) {
+        //★timerの関数定義
+        div.addEventListener(eventtype, stop);
+        //addEventListenerメソッドで、画面がクリックかタップ後、Dateコンストラクターで時間を取得し、
+        //画面の色が変わったときに取得した時間との差分でタイムを計測
+        function stop(event) {
+          //★stopの関数定義
+          cl(event.target);
+          event.target.remove(); //★なぜか消せない…。
+          cl(div);
+          const stopTime = new Date(); //画面クリックかタップ後に時間を取得
+          const time = (stopTime.getTime() - startTime.getTime()) / 1000;
+          //クリックした時間と画面の色が変化した時間との差分を1000で割った時間を算出
+          const ul = document.querySelector("ul"); //ul要素を取得
+          let li = document.createElement("li"); //li要素を取得
+          // 0.1秒以下はフライング
+          if (time < 0.1) {
+            main.textContent = "fault";
+            main.animate(
+              { opacity: [1, 0] },
+              { duration: 2000, fill: "forwards" }
+            );
+            // faultが表示されて2秒でゆっくり消えていくアニメーションを表示
+            div.removeEventListener(eventtype, stop); // stopされる度に呼び出す
+            meteor();
+            cl(event.target);
+            event.target.remove();
+            return;
+          }
+
+          cnt += 1; //カウントアップ 1から2,3,4,5
+          main.textContent = time; //メイン画面にタイム結果
+          times += time; //1から2,3,4,5
+          avg = (times / cnt).toFixed(3); //平均：小数点第三位迄
+          li.textContent = `${cnt}: ${time}`; //メイン画面左上のタイム結果の列
+          ul.appendChild(li); //親ノードulの子ノードリストliの末尾にタイムを追加
+          main.animate(
+            { opacity: [1, 0] },
+            { duration: 2000, fill: "forwards" }
+          );
+          //ストップ時のメイン画面のアニメーション処理：不透明から透明へ2秒かけて処理
+          li.animate({ opacity: [0, 1] }, { duration: 1000, fill: "forwards" });
+          //ストップ時のタイムリストのアニメーション処理：透明から不透明へ1秒かけて処理
+          average.animate(
+            { opacity: [0, 1] },
+            { duration: 1000, fill: "forwards" }
+          );
+          //ストップ時の平均のアニメーション処理：透明から不透明へ1秒かけて処理
+          average.textContent = `average: ${avg}`; //左上の平均の表示と表示
+          div.removeEventListener(eventtype, stop); //stopされたら処理を繰り返す
+
+          // 計測回数が10回になった時の処理
+          if (cnt < 10) {
+            //計測回数が10回未満ならば
+            meteor(); //
+          } else {
+            //計測回数が10回以上になったら
+            if (avg < 1) {
+              result.textContent = "Game Clear!!";
+              const msg = {
+                gameNum4: "clear",
+              };
+              $.when(update(child(ref(db), `users/${userId}`), msg)).done(
+                function () {
+                  setTimeout(returnTop(), 5000);
+                  const returnTop = function () {
+                    window.location.href = "./index.html";
+                  };
+                }
+              );
+            } else {
+              result.textContent = "Game Over";
+            }
+            main.textContent = avg; //メイン画面に平均
+            sub.textContent = "AVERAGE"; //サブメイン画面にAVERAGE表示
+            back.textContent = "Back"; //バックを表示
+            main.animate(
+              //メイン画面のアニメーションの処理
+              { opacity: [1, 0, 1] }, //不透明→透明→透明の繰り返し
+              { duration: 4000, iterations: "Infinity" } //4秒間、アニメーションを無限に繰り返す
+            );
+            sub.animate(
+              //サブメイン画面のアニメーションの処理
+              { opacity: [1, 0, 1] }, //不透明→透明→透明の繰り返し
+              { duration: 4000, iterations: "Infinity" } //4秒間、アニメーションを無限に繰り返す
+            );
+            back.addEventListener(eventtype, () => {
+              location.reload();
+            }); // メイン画面をクリックしたら現在のURLを再度読み込む
+          }
+        }
+      }
+    </script>
+  </body>
+</html>

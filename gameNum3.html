@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>Pong Game</title>
+    <style>
+      body {
+        background-image: url("./img/backimage01.jpg");
+      }
+      header {
+        margin-bottom: 160px;
+      }
+      canvas {
+        background: #222;
+        display: block;
+        margin: 0 auto;
+      }
+      #msg {
+        color: white;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <header>タイトル</header>
+    <canvas width="280" height="280"></canvas>
+    <p id="msg">20点でクリア！</p>
+
+    <!-- JQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- JQuery -->
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-app.js";
+      import {
+        getDatabase,
+        ref,
+        push,
+        set,
+        onChildAdded,
+        remove,
+        onChildRemoved,
+        get,
+        onChildChanged,
+        child,
+        update,
+        query,
+        orderByChild,
+        onValue,
+      } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-database.js";
+      // TODO: Add SDKs for Firebase products that you want to use
+      // https://firebase.google.com/docs/web/setup#available-libraries
+
+      // import environment variables from env.js
+      import {
+        envApiKey,
+        envAuthDomain,
+        envDatabaseURL,
+        envProjectId,
+        envStorageBucket,
+        envMessagingSenderId,
+        envApiId,
+      } from "./js/env.js";
+
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: envApiKey,
+        authDomain: envAuthDomain,
+        databaseURL: envDatabaseURL,
+        projectId: envProjectId,
+        storageBucket: envStorageBucket,
+        messagingSenderId: envMessagingSenderId,
+        appId: envApiId,
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+      const dbRef = ref(db, "users");
+
+      //グローバル変数
+      let userId;
+
+      //読み込み時の処理
+      if (localStorage.getItem("userId") != null) {
+        userId = localStorage.getItem("userId");
+      } else {
+        alert("ログインできていません");
+        location.href = "./login.html";
+      }
+
+      // Firebase用にscoreを外出し
+      let scoring;
+      let clearScore = 20;
+
+      (() => {
+        function rand(min, max) {
+          return Math.random() * (max - min) + min;
+        }
+
+        class Ball {
+          constructor(canvas) {
+            this.canvas = canvas;
+            this.ctx = this.canvas.getContext("2d");
+            this.x = rand(30, 250);
+            this.y = 30;
+            this.r = 10;
+            this.vx = rand(3, 5) * (Math.random() < 0.5 ? 1 : -1);
+            this.vy = rand(3, 5);
+            this.isMissed = false;
+          }
+
+          getMissedStatus() {
+            return this.isMissed;
+          }
+
+          bounce() {
+            this.vy *= -1;
+          }
+
+          reposition(paddleTop) {
+            this.y = paddleTop - this.r;
+          }
+
+          getX() {
+            return this.x;
+          }
+
+          getY() {
+            return this.y;
+          }
+
+          getR() {
+            return this.r;
+          }
+
+          update() {
+            this.x += this.vx;
+            this.y += this.vy;
+
+            if (this.y - this.r > this.canvas.height) {
+              this.isMissed = true;
+            }
+
+            if (this.x - this.r < 0 || this.x + this.r > this.canvas.width) {
+              this.vx *= -1;
+            }
+
+            if (this.y - this.r < 0) {
+              this.vy *= -1;
+            }
+          }
+
+          draw() {
+            this.ctx.beginPath();
+            this.ctx.fillStyle = "#fdfdfd";
+            this.ctx.arc(this.x, this.y, this.r, 0, 2 * Math.PI);
+            this.ctx.fill();
+          }
+        }
+
+        class Paddle {
+          constructor(canvas, game) {
+            this.canvas = canvas;
+            this.game = game;
+            this.ctx = this.canvas.getContext("2d");
+            this.w = 60;
+            this.h = 16;
+            this.x = this.canvas.width / 2 - this.w / 2;
+            this.y = this.canvas.height - 32;
+            this.mouseX = this.x;
+            this.addHandler();
+          }
+
+          addHandler() {
+            document.addEventListener("mousemove", (e) => {
+              this.mouseX = e.clientX;
+            });
+          }
+
+          update(ball) {
+            this.w = this.w - 0.01;
+            const ballBottom = ball.getY() + ball.getR();
+            const paddleTop = this.y;
+            const ballTop = ball.getY() - ball.getR();
+            const paddleBottom = this.y + this.h;
+            const ballCenter = ball.getX();
+            const paddleLeft = this.x;
+            const paddleRight = this.x + this.w;
+
+            if (
+              ballBottom > paddleTop &&
+              ballTop < paddleBottom &&
+              ballCenter > paddleLeft &&
+              ballCenter < paddleRight
+            ) {
+              ball.bounce();
+              ball.reposition(paddleTop);
+              this.game.addScore();
+            }
+
+            const rect = this.canvas.getBoundingClientRect();
+            this.x = this.mouseX - rect.left - this.w / 2;
+
+            if (this.x < 0) {
+              this.x = 0;
+            }
+            if (this.x + this.w > this.canvas.width) {
+              this.x = this.canvas.width - this.w;
+            }
+          }
+
+          draw() {
+            this.ctx.fillStyle = "#fdfdfd";
+            this.ctx.fillRect(this.x, this.y, this.w, this.h);
+          }
+        }
+
+        class Game {
+          constructor(canvas) {
+            this.canvas = canvas;
+            this.ctx = this.canvas.getContext("2d");
+            this.ball = new Ball(this.canvas);
+            this.paddle = new Paddle(this.canvas, this);
+            this.loop();
+            this.isGameOver = false;
+            this.isGameClear = false;
+            this.score = 0;
+          }
+
+          // 点数を追加する時に、スコアメッセージの処理。
+          addScore() {
+            this.score++;
+            scoring = this.score;
+            console.log(scoring);
+            if (scoring >= clearScore) {
+              $("#msg").text("クリア！！何点までいける？");
+              const msg = {
+                gameNum3: "clear",
+              };
+              $.when(update(child(ref(db), `users/${userId}`), msg)).done(
+                function () {
+                  window.location.href = "./index.html";
+                }
+              );
+            }
+          }
+
+          loop() {
+            if (this.isGameOver) {
+              return;
+            }
+            this.update();
+            this.draw();
+
+            requestAnimationFrame(() => {
+              this.loop();
+            });
+          }
+
+          update() {
+            this.ball.update();
+            this.paddle.update(this.ball);
+
+            if (this.ball.getMissedStatus()) {
+              this.isGameOver = true;
+            }
+          }
+
+          draw() {
+            if (this.isGameOver) {
+              this.drawGameOver();
+              return;
+            }
+
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ball.draw();
+            this.paddle.draw();
+            this.drawScore();
+          }
+
+          drawGameOver() {
+            this.ctx.font = '28px "Arial Black"';
+            this.ctx.fillStyle = "tomato";
+            this.ctx.fillText("GAME OVER", 50, 150);
+          }
+
+          drawScore() {
+            this.ctx.font = "20px Arial";
+            this.ctx.fillStyle = "#fdfdfd";
+            this.ctx.fillText(this.score, 10, 25);
+          }
+        }
+
+        const canvas = document.querySelector("canvas");
+        if (typeof canvas.getContext === "undefined") {
+          return;
+        }
+
+        new Game(canvas);
+      })();
+    </script>
+  </body>
+</html>

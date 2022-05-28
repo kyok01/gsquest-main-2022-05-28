@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./css/index.css" />
+    <title>ハートを見ろ！</title>
+  </head>
+  <body>
+    <h1>ハートを見ろ！</h1>
+    <p>
+      ゲームルールについては、このYoutube動画を見てください。<a
+        href="https://www.youtube.com/watch?v=JVfqlVuGdVE"
+        target="_blank"
+        >【スーパー マリオパーティ】ハートを見て！</a
+      >
+    </p>
+    <p>
+      ハートが表示されてから3秒以内に、指定の矢印keyを押してください。3問出ます
+    </p>
+    <button id="game__start">ゲーム開始</button>
+    <div id="game__status">
+      第<span id="game__turn">0</span>問／全3問<br />正解数:<span
+        id="game__winNum"
+        >0</span
+      >
+    </div>
+    <div id="box__ArrowUp" class="box"></div>
+    <div id="boxes__center">
+      <div id="box__ArrowLeft" class="box"></div>
+      <div id="box__output">
+        <div>あなたの矢印キーは</div>
+        <div id="box__showArrow" class="box"></div>
+        <div id="box__result"></div>
+      </div>
+      <div id="box__ArrowRight" class="box"></div>
+    </div>
+    <div id="box__ArrowDown" class="box"></div>
+    <div id="result"></div>
+
+    <!-- JQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- JQuery -->
+
+    <!--** 以下Firebase **-->
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-app.js";
+      import {
+        getDatabase,
+        ref,
+        push,
+        set,
+        onChildAdded,
+        remove,
+        onChildRemoved,
+        get,
+        onChildChanged,
+        child,
+        onValue,
+        update,
+      } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-database.js";
+      // TODO: Add SDKs for Firebase products that you want to use
+      // https://firebase.google.com/docs/web/setup#available-libraries
+
+      // import environment variables from env.js
+      import {
+        envApiKey,
+        envAuthDomain,
+        envProjectId,
+        envStorageBucket,
+        envMessagingSenderId,
+        envApiId,
+      } from "./js/env.js";
+
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: envApiKey,
+        authDomain: envAuthDomain,
+        projectId: envProjectId,
+        storageBucket: envStorageBucket,
+        messagingSenderId: envMessagingSenderId,
+        appId: envApiId,
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+      const dbRef = ref(db, "chat/memo1");
+      const dbScr = ref(db, "chat/score");
+
+      //グローバル変数
+      let userId;
+      let randomNum;
+      let gameStart = false; //ゲームが開始されているかどうかを判別するためのbool値
+      let answerNum = 0; //各ターン1回しか解答できないようにするための処理に用いる変数。初期値1
+      let turnNum = 0; //ターン数をカウントするための変数。初期値0
+      let winNum = 0; //勝利数をカウントするための変数。初期値0
+
+      //読み込み時の処理
+      if (localStorage.getItem("userId") != null) {
+        userId = localStorage.getItem("userId");
+      } else {
+        alert("ログインできていません");
+        location.href = "./login.html";
+      }
+
+      //クライアント側のみでの処理
+      // ゲーム開始ボタンを押したら、4つの枠のうちランダムに三回表示する。jqueryのwhenとdoneを用いて無理やり実装している
+      $("#game__start").one("click", function () {
+        gameStart = true; //ゲーム開始状態にする
+        $("#game__start").attr("disabled", "true");
+        console.log("ゲーム開始ボタン押した");
+        $.when(beginningNewTurn(), makeRandomNum(), showHeart(randomNum)).done(
+          function () {
+            $.when(deleteHeart()).done(function () {
+              $.when(
+                beginningNewTurn(),
+                makeRandomNum(),
+                showHeart(randomNum)
+              ).done(function () {
+                $.when(deleteHeart()).done(function () {
+                  $.when(
+                    beginningNewTurn(),
+                    makeRandomNum(),
+                    showHeart(randomNum)
+                  ).done(function () {
+                    deleteHeart();
+                    finishGame();
+                  });
+                });
+              });
+            });
+          }
+        );
+      });
+
+      document.addEventListener("keydown", function (e) {
+        //まずゲームが開始されているか判別する
+        if (gameStart) {
+          if (e.code == "KeyW" || e.code == "ArrowUp") {
+            console.log(`Up`);
+            if (answerNum == 0) {
+              $("#box__showArrow").html("↑");
+              //正誤判定
+              if (randomNum == 0) {
+                $("#box__result").html("正解");
+                winNum++;
+                $("#game__winNum").html(winNum);
+              } else {
+                $("#box__showArrow").html("不正解");
+                $("#box__result").html("不正解");
+              }
+              answerNum = 1; //複数解答できないようにする
+              console.log(winNum);
+            }
+          } else if (e.code == "KeyD" || e.code == "ArrowRight") {
+            console.log(`Right`);
+            if (answerNum == 0) {
+              $("#box__showArrow").html("→");
+              //正誤判定
+              if (randomNum == 1) {
+                $("#box__result").html("正解");
+                winNum++;
+                $("#game__winNum").html(winNum);
+              } else {
+                $("#box__showArrow").html("不正解");
+                $("#box__result").html("不正解");
+              }
+              answerNum = 1; //複数解答できないようにする
+              console.log(winNum);
+            }
+          } else if (e.code == "KeyS" || e.code == "ArrowDown") {
+            console.log(`Down`);
+            if (answerNum == 0) {
+              $("#box__showArrow").html("↓");
+              //正誤判定
+              if (randomNum == 2) {
+                $("#box__result").html("正解");
+                winNum++;
+                $("#game__winNum").html(winNum);
+              } else {
+                $("#box__showArrow").html("不正解");
+                $("#box__result").html("不正解");
+              }
+              answerNum = 1; //複数解答できないようにする
+              console.log(winNum);
+            }
+          } else if (e.code == "KeyA" || e.code == "ArrowLeft") {
+            console.log(`Left`);
+            if (answerNum == 0) {
+              $("#box__showArrow").html("←");
+              //正誤判定
+              if (randomNum == 3) {
+                $("#box__result").html("正解");
+                winNum++;
+                $("#game__winNum").html(winNum);
+              } else {
+                $("#box__showArrow").html("不正解");
+                $("#box__result").html("不正解");
+              }
+              answerNum = 1; //複数解答できないようにする
+              console.log(winNum);
+            }
+          }
+        }
+      });
+
+      let showHeart = (randomNum) => {
+        //時計回りで0がArrowTop、1がArrowRight、2がArrowDown、3がArrowLeftを表すことにする
+        if (randomNum == 0) {
+          $("#box__ArrowUp").html("♡");
+        }
+        if (randomNum == 1) {
+          $("#box__ArrowRight").html("♡");
+        }
+        if (randomNum == 2) {
+          $("#box__ArrowDown").html("♡");
+        }
+        if (randomNum == 3) {
+          $("#box__ArrowLeft").html("♡");
+        }
+      };
+
+      const makeRandomNum = () => {
+        randomNum = Math.floor(Math.random() * 4);
+        console.log(randomNum);
+      };
+
+      let deleteHeart = async () => {
+        // setTimeout(function () {
+        //     // 1秒（1000ms）後に処理
+        //     $("#box__ArrowUp").html("");
+        //     $("#box__ArrowRight").html("");
+        //     $("#box__ArrowDown").html("");
+        //     $("#box__ArrowLeft").html("");
+        //   }, 3000);
+        try {
+          await wait(3); // ここで5秒間止まります
+
+          // ここに目的の処理を書きます。
+          $("#box__ArrowUp").html("");
+          $("#box__ArrowRight").html("");
+          $("#box__ArrowDown").html("");
+          $("#box__ArrowLeft").html("");
+        } catch (err) {
+          console.log(err);
+        }
+      };
+
+      const wait = (sec) => {
+        return new Promise((resolve, reject) => {
+          setTimeout(resolve, sec * 1000);
+          //setTimeout(() => {reject(new Error("エラー！"))}, sec*1000);
+        });
+      };
+
+      let beginningNewTurn = () => {
+        turnNum++;
+        answerNum = 0;
+        $("#game__turn").html(turnNum);
+      };
+
+      let finishGame = async () => {
+        try {
+          await wait(8);
+          $("#result").append(
+            `<p>あなたの勝利数は${winNum}です</p><button id="result__finish">ゲームを終わる</button><p>※画面遷移まで5秒ほどかかります</p>`
+          );
+        } catch (err) {
+          console.log(err);
+        }
+      };
+      //送信イベント
+      $(document).on("click", "button#result__finish", function () {
+        // score データのアップデート
+        if (winNum === 3) {
+          const msg = {
+            gameNum2: "clear",
+          };
+          $.when(update(child(ref(db), `users/${userId}`), msg)).done(
+            function () {
+              returnTop();
+            }
+          );
+        }
+      });
+
+      let returnTop = async () => {
+        try {
+          await wait(3);
+          window.location.href = "./index.html";
+        } catch (err) {
+          console.log(err);
+        }
+      };
+
+      // 失敗した関数
+      //   let deleteHeart = new Promise(function (resolve, reject) {
+      //     setTimeout(function () {
+      //       // 1秒（1000ms）後に処理
+      //       $("#box__ArrowUp").html("");
+      //       $("#box__ArrowRight").html("");
+      //       $("#box__ArrowDown").html("");
+      //       $("#box__ArrowLeft").html("");
+      //     }, 5000);
+      //     resolve("aaa");
+      //   });
+
+      //   let show = (result) => {
+      //     console.log(result);
+      //   };
+
+      //送信イベント
+
+      //受信イベント
+    </script>
+  </body>
+</html>

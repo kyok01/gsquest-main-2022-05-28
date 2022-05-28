@@ -1,0 +1,13 @@
+// leave your apiKey in
+export let envApiKey = "AIzaSyA41rU3mIJG-Yhf8R2H3eT_JsOWqEgWerw";
+// leave your authDomain in
+export let envAuthDomain = "gsquest-2022-05-22.firebaseapp.com";
+export let envDatabaseURL = "https://gsquest-2022-05-22-default-rtdb.firebaseio.com";
+// leave your projectId in
+export let envProjectId = "gsquest-2022-05-22";
+// leave your storageBucket in
+export let envStorageBucket = "gsquest-2022-05-22.appspot.com";
+// leave your messagingSenderId in
+export let envMessagingSenderId = "199781675900";
+// leave your appId in
+export let envApiId = "1:199781675900:web:6b23ece0ae77678cc36af9";

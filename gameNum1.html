@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Typing</title>
+    <link rel="stylesheet" href="css/gameNum1.css" />
+  </head>
+  <body>
+    <p id="target">
+      45秒以内に3つのJavaScriptを書け！<br />(クリックでスタート)
+    </p>
+    <p id="result"></p>
+    <span id="sec"></span>秒
+
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-app.js";
+      import {
+        getDatabase,
+        ref,
+        push,
+        set,
+        onChildAdded,
+        remove,
+        onChildRemoved,
+        get,
+        onChildChanged,
+        child,
+        update,
+        query,
+        orderByChild,
+        onValue,
+      } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-database.js";
+      // TODO: Add SDKs for Firebase products that you want to use
+      // https://firebase.google.com/docs/web/setup#available-libraries
+
+      // import environment variables from env.js
+      import {
+        envApiKey,
+        envAuthDomain,
+        envDatabaseURL,
+        envProjectId,
+        envStorageBucket,
+        envMessagingSenderId,
+        envApiId,
+      } from "./js/env.js";
+
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: envApiKey,
+        authDomain: envAuthDomain,
+        databaseURL: envDatabaseURL,
+        projectId: envProjectId,
+        storageBucket: envStorageBucket,
+        messagingSenderId: envMessagingSenderId,
+        appId: envApiId,
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+      const dbRef = ref(db, "users");
+
+      //グローバル変数
+      let userId;
+
+      //読み込み時の処理
+      if (localStorage.getItem("userId") != null) {
+        userId = localStorage.getItem("userId");
+      } else {
+        alert("ログインできていません");
+        location.href = "./login.html";
+      }
+
+      {
+        function setWord() {
+          word = words.splice(Math.floor(Math.random() * words.length), 1)[0];
+          target.textContent = word;
+          loc = 0;
+        }
+
+        const words = [
+          "$('selector').attr('name','value')",
+          'console.log(document.getElementById("myid"));',
+          "function sample() {}",
+        ];
+        let word;
+        let loc = 0;
+        let startTime;
+        let isPlaying = false;
+        const target = document.getElementById("target");
+
+        document.addEventListener("click", () => {
+          // プレイ中にクリックしてもはじまらないようにする
+          if (isPlaying === true) {
+            return;
+          }
+
+          isPlaying = true;
+          startTime = Date.now();
+          setWord();
+        });
+
+        let timer = 45000;
+        function countdown() {
+          let restTime = startTime + timer - Date.now();
+          const sec = Math.floor(restTime / 1000) % 60; //ミリ秒を秒に直してから
+          document.getElementById("sec").textContent = String(sec).padStart(
+            2,
+            "0"
+          );
+          if (restTime < 1) {
+            return;
+          }
+          setTimeout(countdown, 1000);
+        }
+        countdown();
+
+        document.addEventListener("keydown", (e) => {
+          if (e.key !== word[loc]) {
+            return;
+          }
+          loc++;
+
+          // 1: _ed
+          // 2: __d
+          // 3: ___
+          target.textContent = "_".repeat(loc) + word.substring(loc);
+
+          if (loc === word.length) {
+            if (words.length === 0) {
+              const elapsedTime = ((Date.now() - startTime) / 1000).toFixed(2);
+              const result = document.getElementById("result");
+              result.textContent = `Game over! ${elapsedTime} seconds!`;
+              if (elapsedTime <= 45) {
+                  update(ref(db, `users/${userId}`), {gameNum1: "clear"});
+                  result.textContent = `Clear!! ${elapsedTime} seconds!`;
+                  setTimeout(function(){window.location.href("./index.html")}, 3000)
+              }
+              return;
+            }
+            setWord();
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

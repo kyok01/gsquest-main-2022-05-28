@@ -1,0 +1,21 @@
+body {
+  background-image: url(./img/Click\ to\ Start.png);
+  background-position: center;
+}
+
+.titlebox {
+  padding: 200px;
+}
+
+.title {
+  text-align: center;
+  font-size: bold;
+  font-size: 80px;
+}
+
+.start {
+  margin-top: 300px;
+  color: white;
+  text-align: center;
+  font-size: 30px;
+}

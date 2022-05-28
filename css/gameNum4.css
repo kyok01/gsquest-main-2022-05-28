@@ -1,0 +1,93 @@
+@font-face {
+	font-family: 'basefont';
+  src: url('../fonts/PixelMplus12-Regular.ttf') format('truetype');
+}
+
+*{
+    margin: 0;
+    user-select: none;
+    font-weight: bold;
+    font-family: 'basefont';
+    color: #FFF;
+}
+html, body, div{
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+section{
+    width: 100%;
+    height: 100%;
+    position: relative;
+    cursor: pointer;
+}
+#bg-video{
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    z-index: -100;
+    background-size: cover;
+}
+div{
+    width: 100%;
+    position: relative;
+    cursor: pointer;
+}
+.main{
+    font-size: 96px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    -webkit-transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+}
+.sub{
+    font-size: 24px;
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    -webkit-transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+}
+.result{
+    font-size: 50px;
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    -webkit-transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+}
+.back{
+    font-size: 48px;
+    color: cadetblue;
+    margin: 50px;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+}
+.average{
+    font-size: 24px;
+    padding: 10px;
+}
+span{
+    padding: 10px;
+}
+ul{
+    padding: 0;
+    list-style: none;
+}
+li{
+    display: block;
+    font-size: 18px;
+    width: 33%;
+    padding: 1px;
+    margin: 0 10px;
+}

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="./opening.css">
+  <style ></style>
+  
+</head>
+<body>
+  <a href="./index.html">スキップ</a>
+  <div class="imgbox">
+    <img src="./img/kanomisanbackground.png" alt="">
+  </div>
+  <div id="msg">
+      <div id="text1">
+        <!-- こんにちは。ここは全銀河から冒険家が集まる場所、G’s ステーションです。<br>
+        この場所を拠点に、宇宙回廊で、星へ移動することができます。 -->
+      </div>
+      <div id="text2">
+        <!-- 星に隠された秘宝を得るには、厳しい試練に打ち勝つ必要があると言われています。<br>
+        安全には気をつけて下さいね。 -->
+      </div>
+      <div id="text3">
+        <!-- それから、7つの秘宝を集めれば、宇宙一の冒険家になれるといわれています。 -->
+      </div>
+      <div id="text4">
+        <!-- 歴史上まだ誰も成し遂げたことのないことですけれど、きっと誰かがやってくれるって私は信じているんです。 -->
+      </div>
+      <div id="text5">
+        <!-- それでは、行ってらっしゃい！！うぃーー！！ -->
+      </div>
+      <div class="triangle"></div>  
+  </div>
+
+  <!-- JQuery -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://unpkg.com/ityped@1.0.3"></script>
+  
+  <!-- JQuery -->
+  <script>
+    window.onload = function(){
+      let i = 0;
+      $("#text1").show();
+      ityped.init(document.getElementById("text1"), {
+          strings: ["こんにちは。ここは全銀河から冒険家が集まる場所、G’s ステーションです。この場所を拠点に、宇宙回廊で、星へ移動することができます。"], //表示させたい文字の設定 区切りはカンマ
+          startDelay: 0, //アニメーション開始までの遅延、大きいほど遅れる
+          typeSpeed: 60, //表示させるスピード、大きいほどゆっくり
+          loop: false, //ループ
+          backSpeed: 80, //戻るスピード
+          backDelay: 150, //戻る時間指定
+          showCursor: false, //カーソル表示
+          cursorChar: "|", //カーソルとして表示するテキスト
+          onFinished: function(){
+            document.querySelector(".ityped-cursor").style.display = "none";
+          }
+      });
+    }
+    let i = 0;
+    //メッセージの変更
+    $("#msg").on("click", function(){
+      if (i == 0) {
+        $("#text1").hide();
+        $("#text2").show();
+        ityped.init(document.getElementById("text2"), {
+          strings: ["星に隠された秘宝を得るには、厳しい試練に打ち勝つ必要があると言われています。安全には気をつけて下さいね。"], //表示させたい文字の設定 区切りはカンマ
+          startDelay: 0, //アニメーション開始までの遅延、大きいほど遅れる
+          typeSpeed: 60, //表示させるスピード、大きいほどゆっくり
+          loop: false, //ループ
+          backSpeed: 80, //戻るスピード
+          backDelay: 150, //戻る時間指定
+          showCursor: false, //カーソル表示
+          cursorChar: "|", //カーソルとして表示するテキスト
+          onFinished: function(){
+            document.querySelector(".ityped-cursor").style.display = "none";
+          }
+        });
+      }
+      if (i == 1) {
+        $("#text2").hide();
+        $("#text3").show();
+        ityped.init(document.getElementById("text3"), {
+          strings: ["それから、7つの秘宝を集めれば、宇宙一の冒険家になれるといわれています。"], //表示させたい文字の設定 区切りはカンマ
+          startDelay: 0, //アニメーション開始までの遅延、大きいほど遅れる
+          typeSpeed: 60, //表示させるスピード、大きいほどゆっくり
+          loop: false, //ループ
+          backSpeed: 80, //戻るスピード
+          backDelay: 150, //戻る時間指定
+          showCursor: false, //カーソル表示
+          cursorChar: "|", //カーソルとして表示するテキスト
+          onFinished: function(){
+            document.querySelector(".ityped-cursor").style.display = "none";
+          }
+        });
+      }
+      if (i == 2) {
+        $("#text3").hide();
+        $("#text4").show();
+        ityped.init(document.getElementById("text4"), {
+          strings: ["歴史上まだ誰も成し遂げたことのないことですけれど、きっと誰かがやってくれるって私は信じているんです。"], //表示させたい文字の設定 区切りはカンマ
+          startDelay: 0, //アニメーション開始までの遅延、大きいほど遅れる
+          typeSpeed: 60, //表示させるスピード、大きいほどゆっくり
+          loop: false, //ループ
+          backSpeed: 80, //戻るスピード
+          backDelay: 150, //戻る時間指定
+          showCursor: false, //カーソル表示
+          cursorChar: "|", //カーソルとして表示するテキスト
+          onFinished: function(){
+            document.querySelector(".ityped-cursor").style.display = "none";
+          }
+        });
+      }
+      if (i == 3) {
+        $("#text4").hide();
+        $("#text5").show();
+        ityped.init(document.getElementById("text5"), {
+          strings: ["それでは、行ってらっしゃい！！うぃーー！！"], //表示させたい文字の設定 区切りはカンマ
+          startDelay: 0, //アニメーション開始までの遅延、大きいほど遅れる
+          typeSpeed: 60, //表示させるスピード、大きいほどゆっくり
+          loop: false, //ループ
+          backSpeed: 80, //戻るスピード
+          backDelay: 150, //戻る時間指定
+          showCursor: false, //カーソル表示
+          cursorChar: "|", //カーソルとして表示するテキスト
+          onFinished: function(){
+            document.querySelector(".ityped-cursor").style.display = "none";
+          }
+        });
+      }
+      if (i == 4){
+        location.href='./index.html';
+      }
+      i++
+    })
+
+  </script>
+</body>
+</html>
