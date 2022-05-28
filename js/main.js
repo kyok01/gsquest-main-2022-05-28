@@ -278,7 +278,7 @@ let clearFlag = 0;
         $.when(update(child(ref(db), `users/${userId}`), msg)).done(
           function () {
             setTimeout(returnTop(), 5000);
-            const returnTop = function () {
+            function returnTop () {
               window.location.href = "./index.html";
             };
           }
