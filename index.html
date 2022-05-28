@@ -443,10 +443,15 @@
       onValue(ref(db, `users/${userId}`), function (snapshot) {
         const data = snapshot.val();
         console.log(data); //debug
+        let clearNum = 0;
         for (let i = 1; i <= 7; i++) {
           console.log(data[`gameNum${i}`]); //debug
           if (data[`gameNum${i}`] == "clear") {
             $(`#output__column${i}`).addClass("red");
+            clearNum++;
+          }
+          if (clearNum == 7){
+            window.location.href="./endroll.html"
           }
         }
       });
