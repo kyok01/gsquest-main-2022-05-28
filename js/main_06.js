@@ -124,7 +124,7 @@ let sprite =[
     new Sprite(40,42, 33,41) //赤２
 ]; //new 画像イメージ（開始x座標, 開始y座標, 幅, 高さ）
 
-let timer = 30 * 1000;
+let timer = 15 * 1000;
 let start = new Date();
 let hour = 0;
 let min = 0;
@@ -151,13 +151,13 @@ function disp() {
   }
 
   // フォーマットを指定
-  let timer1 = "残り " + min + ":" + sec;
+  let timer1 = "残り " + ":" + sec;
 
   // テキストフィールドにデータを渡す処理
   document.form1.field1.value = timer1;
   console.log(timer1);
 
-  setTimeout("disp()", 1000);
+  setTimeout(disp, 1000);
 }
 disp();
 
@@ -392,6 +392,6 @@ function gameLoop(){ //一定時間に決まった回数だけ繰り返すルー
         window.setTimeout(function(){
             alert("時間切れ");
             location.href = "#";
-        }, 30000);
+        }, timer);
     }
 // });
